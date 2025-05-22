@@ -4,14 +4,10 @@ require 'koneksi.php';
 
 $isUserLoggedIn = isset($_SESSION['id']) && $_SESSION['role'] === 'user';
 
-//ini ganti store procedure top selling
-$sql = "SELECT p.product_id, p.product_name, p.price, p.image_url, b.brand_name, c.category_name
-        FROM products p
-        JOIN brands b ON b.brand_id = p.brand_id
-        JOIN categories c ON c.category_id = p.category_id
-        ORDER BY p.created_at DESC
-        LIMIT 8";
+$sql = "CALL top_selling_products()";
 $produk = $conn->query($sql);
+
+
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -73,9 +69,9 @@ $produk = $conn->query($sql);
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <!-- looping produk -->
-      <?php if($produk && $produk->num_rows): ?>
+      <?php if (isset($produk) && $produk instanceof mysqli_result && $produk->num_rows > 0): ?>
         <?php while($p = $produk->fetch_assoc()): ?>
-          <a href="detail.php?id=<?= $p['product_id'] ?>"
+          <a href="detail.php?id=<?= (int)$p['product_id'] ?>"
             class="bg-white rounded-lg shadow hover:shadow-lg transition block">
             <img src="<?= htmlspecialchars($p['image_url'] ?: 'https://via.placeholder.com/300') ?>"
                 alt="<?= htmlspecialchars($p['product_name']) ?>"
@@ -85,10 +81,13 @@ $produk = $conn->query($sql);
               <p class="text-sm text-gray-500 mb-1">
                 <?= htmlspecialchars($p['brand_name']) ?> | <?= htmlspecialchars($p['category_name']) ?>
               </p>
-              <p class="text-orange-500 font-bold">Rp <?= number_format($p['price'],0,',','.') ?>.000</p>
+              <p class="text-orange-500 font-bold">
+                $ <?= number_format((float)$p['price'], 0, ',', '.') ?>
+              </p>
             </div>
           </a>
         <?php endwhile; ?>
+        <?php $produk->free(); $conn->next_result(); // Penting untuk prosedur ?>
       <?php else: ?>
         <p class="col-span-4 text-center text-gray-500">Belum ada produk.</p>
       <?php endif; ?>

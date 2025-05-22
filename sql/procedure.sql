@@ -89,3 +89,32 @@ BEGIN
     COMMIT;
 END //
 DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE top_selling_products()
+BEGIN
+  SELECT 
+    p.product_id,
+    p.product_name,
+    p.image_url,
+    p.price,
+    b.brand_name,
+    c.category_name,
+    SUM(oi.quantity) AS qty_sold
+  FROM order_items oi
+  JOIN products p ON oi.product_id = p.product_id
+  LEFT JOIN brands b ON p.brand_id = b.brand_id
+  LEFT JOIN categories c ON p.category_id = c.category_id
+  GROUP BY p.product_id
+  ORDER BY qty_sold DESC
+  LIMIT 8;
+END //
+
+DELIMITER ;
+
+
+
+
+
+

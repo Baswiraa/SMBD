@@ -50,7 +50,7 @@ $result = $conn->query($sql);
                         <td class="px-6 py-4">Rp <?= number_format($row['total_amount'],0,',','.') ?></td>
                         <td class="px-6 py-4 capitalize"><?= htmlspecialchars($row['status']) ?></td>
                         <td class="px-6 py-4 space-x-2">
-                            <a href="order-detail.php?id=<?= $row['order_id'] ?>" class="px-3 py-1 bg-blue-500 text-white rounded">Lihat</a>
+                            <a href="order_update_status.php?id=<?= $row['order_id'] ?>" class="px-3 py-1 bg-blue-500 text-white rounded" onclick="return confirm('Ubah status pesanan ini?')">Ubah Status</a>
                             <a href="order-delete.php?id=<?= $row['order_id'] ?>" class="px-3 py-1 bg-red-500 text-white rounded" onclick="return confirm('Hapus pesanan ini?')">Hapus</a>
                         </td>
                     </tr>

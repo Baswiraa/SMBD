@@ -64,7 +64,7 @@ if(!$produk){ die('Produk tidak ditemukan'); }
             <?= htmlspecialchars($produk['category_name']) ?></p>
 
         <p class="text-2xl text-orange-500 font-bold mb-6">
-            Rp <?= number_format($produk['price'],0,',','.') ?>.000
+            $ <?= number_format($produk['price'],0,',','.') ?>
         </p>
 
         <p class="mb-6 whitespace-pre-line"><?= nl2br(htmlspecialchars($produk['description'])) ?></p>

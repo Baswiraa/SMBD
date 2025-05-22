@@ -72,18 +72,12 @@ CREATE PROCEDURE create_order(
     IN p_total_amount DECIMAL(10, 2)
 )
 BEGIN
-    -- Insert ke tabel orders
     INSERT INTO orders (user_id, total_amount) VALUES (p_user_id, p_total_amount);
     SET @order_id = LAST_INSERT_ID();
 
-    -- Insert ke tabel order_items
     INSERT INTO order_items (order_id, product_id, quantity, price_each)
     VALUES (@order_id, p_product_id, p_quantity, p_price_each);
-
-    -- Kurangi stok
     UPDATE stock SET quantity = quantity - p_quantity WHERE product_id = p_product_id;
-
-    -- Mengembalikan order_id
     SELECT @order_id AS order_id;
 
     COMMIT;

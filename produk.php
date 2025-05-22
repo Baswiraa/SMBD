@@ -3,40 +3,25 @@ session_start();
 require 'koneksi.php';
 $isUserLoggedIn = isset($_SESSION['id']) && $_SESSION['role'] === 'user';
 
-$search  = $_GET['q']        ?? '';
-$brandId = $_GET['brand_id'] ?? '';
-$catId   = $_GET['cat_id']   ?? '';
+$search = $_GET['q'] ?? '';
+$productList = [];
 
-$brands = $conn->query("SELECT * FROM brands ORDER BY brand_name");
-$cats   = $conn->query("SELECT * FROM categories ORDER BY category_name");
-
-$where = [];
-$params = []; $types = '';
-if($search){
-  $where[] = "p.product_name LIKE ?";
-  $params[] = "%$search%";  $types .= 's';
-}
-if($brandId){
-  $where[] = "p.brand_id = ?";
-  $params[] = $brandId;     $types .= 'i';
-}
-if($catId){
-  $where[] = "p.category_id = ?";
-  $params[] = $catId;       $types .= 'i';
-}
-$sql = "SELECT p.*, b.brand_name, c.category_name
-        FROM products p
-        JOIN brands b ON b.brand_id = p.brand_id
-        JOIN categories c ON c.category_id = p.category_id";
-if($where) $sql .= " WHERE ".implode(' AND ',$where);
-$sql .= " ORDER BY p.product_name";
-
-$stmt = $conn->prepare($sql);
-if($params){
-  $stmt->bind_param($types, ...$params);
-}
+$stmt = $conn->prepare("CALL show_all_products(?)");
+$stmt->bind_param("s", $search);
 $stmt->execute();
-$product = $stmt->get_result();
+
+do {
+    if ($result = $stmt->get_result()) {
+        while ($row = $result->fetch_assoc()) {
+            $productList[] = $row;
+        }
+        $result->free();
+    }
+} while ($stmt->more_results() && $stmt->next_result());
+
+$stmt->close();
+
+
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -77,44 +62,19 @@ $product = $stmt->get_result();
   </div>
 </header>
 
-<!-- Filter + Search -->
-<section class="max-w-7xl mx-auto px-4 py-8">
-  <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-    <div>
-      <label class="block text-sm mb-1">Cari Nama</label>
-      <input type="text" name="q" value="<?= htmlspecialchars($search) ?>" placeholder="Cari..." class="w-full border p-2 rounded">
-    </div>
-    <div>
-      <label class="block text-sm mb-1">Brand</label>
-      <select name="brand_id" class="w-full border p-2 rounded">
-        <option value="">Semua</option>
-        <?php while($b=$brands->fetch_assoc()): ?>
-          <option value="<?= $b['brand_id'] ?>" <?= $b['brand_id']==$brandId?'selected':'' ?>>
-            <?= htmlspecialchars($b['brand_name']) ?>
-          </option>
-        <?php endwhile; ?>
-      </select>
-    </div>
-    <div>
-      <label class="block text-sm mb-1">Kategori</label>
-      <select name="cat_id" class="w-full border p-2 rounded">
-        <option value="">Semua</option>
-        <?php while($c=$cats->fetch_assoc()): ?>
-          <option value="<?= $c['category_id'] ?>" <?= $c['category_id']==$catId?'selected':'' ?>>
-            <?= htmlspecialchars($c['category_name']) ?>
-          </option>
-        <?php endwhile; ?>
-      </select>
-    </div>
-    <button class="bg-orange-500 hover:bg-orange-600 text-white py-2 rounded">Terapkan</button>
+<?php $search = $_GET['q'] ?? ''; ?>
+<section class="max-w-7xl mx-auto px-4 py-6">
+  <form method="get" class="flex gap-2">
+    <input type="text" name="q" value="<?= htmlspecialchars($search) ?>" placeholder="Cari produk..."
+           class="border p-2 rounded w-full md:w-1/3">
+    <button type="submit" class="bg-orange-500 text-white px-4 rounded hover:bg-orange-600">Cari</button>
   </form>
 </section>
 
-<!-- Grid Produk -->
 <section class="max-w-7xl mx-auto px-4 pb-10">
-  <?php if($product && $product->num_rows): ?>
+  <?php if($productList): ?>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <?php while($p = $product->fetch_assoc()): ?>
+        <?php foreach($productList as $p): ?>
           <a href="detail.php?id=<?= $p['product_id'] ?>"
             class="bg-white rounded-lg shadow hover:shadow-lg transition block">
             <img src="<?= htmlspecialchars($p['image_url'] ?: 'https://via.placeholder.com/300') ?>"
@@ -125,10 +85,10 @@ $product = $stmt->get_result();
               <p class="text-sm text-gray-500 mb-1">
                 <?= htmlspecialchars($p['brand_name']) ?> | <?= htmlspecialchars($p['category_name']) ?>
               </p>
-              <p class="text-orange-500 font-bold">Rp <?= number_format($p['price'],0,',','.') ?>.000</p>
+              <p class="text-orange-500 font-bold">$ <?= number_format($p['price'],0,',','.') ?></p>
             </div>
           </a>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
     </div>
   <?php else: ?>
     <p class="text-center text-gray-500">Produk tidak ditemukan.</p>

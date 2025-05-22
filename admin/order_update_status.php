@@ -1,78 +1,90 @@
 <?php
-include '../koneksi.php';
+session_start();
+require_once 'auth.php';
+require_once '../koneksi.php';
 
-// Cek apakah parameter id ada
-if (!isset($_GET['id'])) {
-    echo "ID pesanan tidak ditemukan.";
+// Ambil ID order dari query string
+$orderId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($orderId <= 0) {
+    header("Location: pesanan.php");
     exit;
 }
 
-$order_id = $_GET['id'];
+// Jika form submit untuk update status
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
+    $newStatus = $_POST['status'] ?? '';
+    $newStatus = trim($newStatus);
 
-// Ambil data pesanan berdasarkan order_id
-$query = "SELECT * FROM orders WHERE order_id = '$order_id'";
-$result = $conn->query($sql);
+    if ($newStatus !== '') {
+        $stmt = $conn->prepare("CALL sp_update_order_status(?, ?)");
+        if (!$stmt) {
+            die("Prepare failed: " . $conn->error);
+        }
+        $stmt->bind_param("is", $orderId, $newStatus);
+        if (!$stmt->execute()) {
+            die("Execute failed: " . $stmt->error);
+        }
+        $stmt->close();
 
-if (mysqli_num_rows($result) == 0) {
-    echo "Pesanan tidak ditemukan.";
-    exit;
-}
-
-$order = mysqli_fetch_assoc($result);
-
-// Jika form diedit dan disubmit
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nama_pelanggan = $_POST['user_id'];
-    $tanggal = $_POST['order_date'];
-    $status = $_POST['status'];
-
-    // Update data pesanan
-    $updateQuery = "UPDATE orders SET 
-                    user_id = '$nama_pelanggan',
-                    order_date = '$tanggal',
-                    status = '$status'
-                    WHERE order_id = '$order_id'";
-
-    if (mysqli_query($koneksi, $updateQuery)) {
-        header("Location: pesanan.php"); // Ganti dengan halaman daftar pesanan kamu
+        header("Location: pesanan.php?msg=Status berhasil diubah");
         exit;
     } else {
-        echo "Error update: " . mysqli_error($koneksi);
+        $error = "Status tidak boleh kosong.";
     }
 }
 
-?>
+// Ambil data pesanan berdasarkan ID untuk tampil di form
+$sql = "SELECT order_id, status FROM orders WHERE order_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $orderId);
+$stmt->execute();
+$result = $stmt->get_result();
+$order = $result->fetch_assoc();
+$stmt->close();
 
+if (!$order) {
+    // Jika order tidak ditemukan, redirect ke daftar pesanan
+    header("Location: pesanan.php");
+    exit;
+}
+
+// Pilihan status (sesuaikan dengan status valid di aplikasi)
+$statusOptions = ['pending', 'processing', 'shipped', 'completed', 'cancelled'];
+
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <title>Edit Pesanan</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ubah Status Pesanan #<?= htmlspecialchars($order['order_id']) ?></title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+    <div class="bg-white rounded shadow p-8 w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-6">Ubah Status Pesanan #<?= htmlspecialchars($order['order_id']) ?></h1>
 
-<div class="container mx-auto py-8">
-    <h1 class="text-2xl font-bold mb-6">Edit Pesanan #<?= $order_id ?></h1>
+        <?php if (!empty($error)): ?>
+            <div class="mb-4 text-red-600 font-semibold"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
 
-    <form action="" method="POST" class="bg-white p-6 rounded shadow-md max-w-md">
-        <label class="block mb-2 font-semibold">Nama Pelanggan:</label>
-        <input type="text" name="nama_pelanggan" value="<?= htmlspecialchars($order['nama_pelanggan']) ?>" class="w-full mb-4 p-2 border rounded" required>
+        <form method="post" class="space-y-4">
+            <label for="status" class="block font-semibold">Pilih Status Baru</label>
+            <select id="status" name="status" class="w-full border rounded p-2" required>
+                <option value="">-- Pilih Status --</option>
+                <?php foreach ($statusOptions as $status): ?>
+                    <option value="<?= $status ?>" <?= ($order['status'] === $status) ? 'selected' : '' ?>>
+                        <?= ucfirst($status) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
 
-        <label class="block mb-2 font-semibold">Tanggal:</label>
-        <input type="date" name="tanggal" value="<?= htmlspecialchars($order['tanggal']) ?>" class="w-full mb-4 p-2 border rounded" required>
-
-        <label class="block mb-2 font-semibold">Status:</label>
-        <select name="status" class="w-full mb-4 p-2 border rounded" required>
-            <option value="pending" <?= $order['status'] == 'pending' ? 'selected' : '' ?>>Pending</option>
-            <option value="process" <?= $order['status'] == 'process' ? 'selected' : '' ?>>Process</option>
-            <option value="complete" <?= $order['status'] == 'complete' ? 'selected' : '' ?>>Complete</option>
-        </select>
-
-        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Simpan Perubahan</button>
-        <a href="pesanan.php" class="ml-4 text-gray-600 hover:underline">Batal</a>
-    </form>
-</div>
-
+            <div class="flex justify-between">
+                <a href="pesanan.php" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Batal</a>
+                <button type="submit" name="update_status" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Update Status</button>
+            </div>
+        </form>
+    </div>
 </body>
 </html>
+<?php $conn->close(); ?>

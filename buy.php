@@ -73,7 +73,7 @@ try{
         <p class="mb-2">Produk: <?= htmlspecialchars($prod['product_name']) ?></p>
         <p class="mb-2">Jumlah: <?= $qty ?></p>
         <p class="mb-6">Total Bayar: <span class="font-semibold">
-            Rp <?= number_format($total,0,',','.') ?>.000</span></p>
+            $ <?= number_format($total,0,',','.') ?></span></p>
         <a href="index.php" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded">
             Kembali ke Beranda
         </a>

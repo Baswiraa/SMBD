@@ -77,7 +77,7 @@ $result = $conn->query($sql);
                             <td class="px-6 py-4"><?= htmlspecialchars($row['product_name']) ?></td>
                             <td class="px-6 py-4"><?= htmlspecialchars($row['brand_name']) ?></td>
                             <td class="px-6 py-4"><?= htmlspecialchars($row['category_name']) ?></td>
-                            <td class="px-6 py-4">Rp <?= number_format($row['price'], 0, ',', '.') ?></td>
+                            <td class="px-6 py-4">$ <?= number_format($row['price'], 0, ',', '.') ?></td>
                             <td class="px-6 py-4"><?= (int)($row['stock'] ?? 0) ?></td>
                             <td class="px-6 py-4 space-x-2">
                                 <button onclick="openModal(<?= (int)$row['product_id'] ?>)" class="px-3 py-1 bg-green-500 text-white rounded">Tambah Stok</button>

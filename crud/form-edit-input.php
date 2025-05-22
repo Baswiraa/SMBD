@@ -9,9 +9,8 @@ $categories = $conn->query("SELECT * FROM categories ORDER BY category_name");
 // --- Inisialisasi variabel ---
 $id = $_GET['id'] ?? '';
 $edit = false;
-$data = []; // Inisialisasi $data sebagai array kosong
+$data = [];
 if($id){
-    // Gunakan VIEW product_detail_view untuk mengambil data produk
     $stmt = $conn->prepare("SELECT * FROM product_detail_view WHERE product_id=?");
     $stmt->bind_param('i',$id);
     $stmt->execute();
@@ -19,9 +18,6 @@ if($id){
     if($data){ $edit=true; }
     $stmt->close();
 
-    // Jika dalam mode edit, kita perlu mengambil stok secara terpisah jika tidak ada di view
-    // Dalam product_detail_view yang kita buat, stok sudah termasuk.
-    // Jadi, kita tidak perlu query terpisah lagi.
 }
 ?>
 <!DOCTYPE html>

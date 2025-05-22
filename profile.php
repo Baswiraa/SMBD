@@ -28,6 +28,27 @@ $history = $conn->query("SELECT * FROM orders WHERE user_id = $user_id ORDER BY 
 </head>
 <body class="bg-gray-100 p-6">
 
+<header class="bg-white shadow-md sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+    <div class="text-orange-500 text-2xl font-bold">JAYSHOES</div>
+    <nav class="space-x-6 text-sm font-medium flex items-center">
+
+      <a href="index.php" class="hover:text-orange-500 <?= basename($_SERVER['PHP_SELF']) === 'index.php' ? 'text-orange-500 font-bold' : '' ?>">Home</a>
+      <a href="produk.php" class="hover:text-orange-500 <?= basename($_SERVER['PHP_SELF']) === 'produk.php' ? 'text-orange-500 font-bold' : '' ?>">Produk</a>
+
+      <!-- Karena user sudah login, langsung tampilkan nama dan tombol logout -->
+      <a href="profile.php" class="text-gray-600 hover:text-orange-500 underline">
+        Hi, <?= htmlspecialchars($user['full_name']) ?>
+      </a>
+      <a href="logout.php" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">
+        Logout
+      </a>
+
+    </nav>
+  </div>
+</header>
+
+
 <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
   <h1 class="text-2xl font-bold mb-4">Profil Saya</h1>
 

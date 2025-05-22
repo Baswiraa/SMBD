@@ -80,7 +80,6 @@ BEGIN
     UPDATE stock SET quantity = quantity - p_quantity WHERE product_id = p_product_id;
     SELECT @order_id AS order_id;
 
-    COMMIT;
 END //
 DELIMITER ;
 

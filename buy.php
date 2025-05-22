@@ -1,20 +1,21 @@
 <?php
 session_start();
 require 'koneksi.php';
-if (!isset($_SESSION['user_id'])) {
-    /* ambil nilai return dari POST; fallback: detail produk */
-    $return = $_POST['return']
-                ?? ('detail.php?id='.(int)($_POST['product_id'] ?? 0));
 
-    header('Location: login.php?return='.urlencode($return));
+// Fix 1: Change this check to use the correct session variable
+if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'user') {
+    // Store the product ID to return to after login
+    $_SESSION['return_after_login'] = 'detail.php?id='.(int)($_POST['product_id'] ?? 0);
+    header('Location: login.php?return=' . urlencode('detail.php?id='.(int)($_POST['product_id'] ?? 0)));
     exit;
 }
 
-$id   = (int)($_POST['product_id'] ?? 0);
+$id = (int)($_POST['product_id'] ?? 0);
 $qty = max(1, (int)($_POST['qty'] ?? 1));
-$userId = (int)$_SESSION['user_id'];
+// Fix 2: Use the correct session variable for user ID
+$userId = (int)$_SESSION['id'];
 
-// cek produk & stok menggunakan VIEW
+// Check product and stock
 $stmt = $conn->prepare("SELECT price, product_name, stock FROM product_stock_view WHERE product_id = ?");
 $stmt->bind_param('i', $id);
 $stmt->execute();
@@ -25,34 +26,46 @@ if(!$prod){ die('Produk tidak ditemukan'); }
 if($qty > $prod['stock']){ die('Stok tidak mencukupi'); }
 
 $priceEach = $prod['price'];
-$total     = $priceEach * $qty;
+$total = $priceEach * $qty;
 
-// ====== Simpan ke orders & order_items menggunakan PROCEDURE ======
+// Save to orders
 $conn->begin_transaction();
-try{
-    $stmt = $conn->prepare("CALL create_order(?, ?, ?, ?, ?)");
-    $stmt->bind_param('iiiid', $userId, $id, $qty, $priceEach, $total);
+try {
+    // Fix 3: Verify the user exists first
+    $stmt = $conn->prepare("SELECT user_id FROM users WHERE user_id = ?");
+    $stmt->bind_param('i', $userId);
     $stmt->execute();
-    $result = $stmt->get_result(); // Dapatkan hasil jika prosedur mengembalikannya
-    $orderId = null;
-    if ($result) {
-        $row = $result->fetch_assoc();
-        if ($row && isset($row['order_id'])) {
-            $orderId = $row['order_id'];
-        }
-        $result->free();
-    } else {
-        $orderId = $conn->insert_id; // Fallback jika prosedur tidak mengembalikan order_id
+    if (!$stmt->get_result()->fetch_assoc()) {
+        throw new Exception("User tidak valid");
     }
     $stmt->close();
 
-    $conn->commit();
+    // Create order
+    $stmt = $conn->prepare("CALL create_order(?, ?, ?, ?, ?)");
+    $stmt->bind_param('iiiid', $userId, $id, $qty, $priceEach, $total);
+    $stmt->execute();
+    
+    // Get order ID
+    $orderId = null;
+    do {
+        if ($result = $stmt->get_result()) {
+            $row = $result->fetch_assoc();
+            if ($row && isset($row['order_id'])) {
+                $orderId = $row['order_id'];
+            }
+            $result->free();
+        }
+    } while ($stmt->more_results() && $stmt->next_result());
+    
+    $stmt->close();
 
     if ($orderId === null) {
-        throw new Exception("Gagal mendapatkan ID pesanan.");
+        $orderId = $conn->insert_id; // Fallback
     }
 
-}catch(Exception $e){
+    $conn->commit();
+
+} catch(Exception $e) {
     $conn->rollback();
     die('Terjadi kesalahan: '.$e->getMessage());
 }
@@ -74,8 +87,8 @@ try{
         <p class="mb-2">Jumlah: <?= $qty ?></p>
         <p class="mb-6">Total Bayar: <span class="font-semibold">
             $ <?= number_format($total,0,',','.') ?></span></p>
-        <a href="index.php" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded">
-            Kembali ke Beranda
+        <a href="<?= htmlspecialchars($_POST['return']) ?>" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded">
+            Kembali
         </a>
     </div>
 </body>

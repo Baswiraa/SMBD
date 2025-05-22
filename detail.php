@@ -73,7 +73,7 @@ if(!$produk){ die('Produk tidak ditemukan'); }
             <p class="mb-4 text-green-600">Stok: <?= $produk['stock'] ?> tersedia</p>
             <form action="buy.php" method="post" class="space-y-4">
                 <input type="hidden" name="product_id" value="<?= $produk['product_id'] ?>">
-                <input type="hidden" name="return"      value="<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
+                <input type="hidden" name="return" value="<?= htmlspecialchars($_SERVER['REQUEST_URI']) ?>">
                 <label class="block">
                     <span class="text-sm">Jumlah</span>
                     <input type="number" name="qty" value="1" min="1" max="<?= $produk['stock'] ?>"
@@ -82,7 +82,7 @@ if(!$produk){ die('Produk tidak ditemukan'); }
                 <button class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded">
                     Beli Sekarang
                 </button>
-            </form>
+            </>
         <?php else: ?>
             <p class="text-red-600 font-semibold">Stok habis</p>
         <?php endif; ?>

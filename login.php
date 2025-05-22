@@ -40,12 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['role'] = $res['role'];
         $_SESSION['name'] = $res['name'];
 
+        $returnUrl = $_GET['return'] ?? null;
+
         if ($res['role'] === 'admin') {
-            header('Location: admin/dashboard.php');
+          header('Location: admin/dashboard.php');
         } else {
-            header('Location: index.php');
+            $returnUrl = $_GET['return'] ?? 'index.php';
+            header('Location: ' . $returnUrl);
         }
         exit;
+
     } else {
         $errors[] = 'Email atau password salah.';
     }

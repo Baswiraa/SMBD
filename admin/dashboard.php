@@ -31,7 +31,7 @@ $result = $conn->query($sql);
     <main class="flex-1 p-8 overflow-auto">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-3xl font-semibold text-gray-700">Daftar Produk</h2>
-            <a href="crud/form-edit-input.php" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded">+ Tambah Produk</a>
+            <a href="../crud/form-edit-input.php" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded">+ Tambah Produk</a>
         </div>
 
         <div class="bg-white shadow rounded-lg overflow-x-auto">

@@ -80,7 +80,7 @@ if($id){
         </div>
         <button class="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded w-full">Simpan</button>
     </form>
-    <a href="../dashboard.php" class="block text-center mt-4 text-sm text-gray-500">&larr; Kembali</a>
+    <a href="../admin/dashboard.php" class="block text-center mt-4 text-sm text-gray-500">&larr; Kembali</a>
 </div>
 </body>
 </html>

@@ -21,7 +21,7 @@ $result = $conn->query($sql);
             <a href="dashboard.php" class="block py-2 px-3 rounded hover:bg-gray-700">Produk</a>
             <a href="pesanan.php"   class="block py-2 px-3 rounded hover:bg-gray-700">Pesanan</a>
             <a href="user.php"      class="block py-2 px-3 rounded bg-gray-700">Pengguna</a>
-            <a href="../login.php"                class="block py-2 px-3 rounded hover:bg-gray-700">Logout</a>
+            <a href="../logout.php" class="block py-2 px-3 rounded hover:bg-gray-700 text-red-400 font-semibold">Logout</a>
         </nav>
     </aside>
 

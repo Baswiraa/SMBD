@@ -1,5 +1,7 @@
 <?php
+session_start();
 require 'koneksi.php';
+$isUserLoggedIn = isset($_SESSION['id']) && $_SESSION['role'] === 'user';
 
 $id = (int)($_GET['id'] ?? 0);
 
@@ -24,10 +26,28 @@ if(!$produk){ die('Produk tidak ditemukan'); }
 <header class="bg-white shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         <a href="index.php" class="text-orange-500 text-2xl font-bold">JAYSHOES</a>
-        <nav class="space-x-6 text-sm font-medium">
-            <a href="index.php" class="hover:text-orange-500">Home</a>
-            <a href="produk.php" class="hover:text-orange-500">Produk</a>
-        </nav>
+    <nav class="space-x-6 text-sm font-medium flex items-center">
+
+      <a href="index.php" class="hover:text-orange-500 <?= basename($_SERVER['PHP_SELF'])==='index.php' ? 'text-orange-500 font-bold':'' ?>">Home</a>
+      <a href="produk.php" class="hover:text-orange-500 <?= basename($_SERVER['PHP_SELF'])==='produk.php' ? 'text-orange-500 font-bold':'' ?>">Produk</a>
+
+      <?php if ($isUserLoggedIn): ?>
+          <!-- Sudah login -->
+          <a href="profile.php"
+            class="text-gray-600 hover:text-orange-500 underline">
+            Hi, <?= htmlspecialchars($_SESSION['name']) ?>
+          </a>
+          <a href="logout.php"
+            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">Logout</a>
+      <?php else: ?>
+          <!-- Belum login -->
+          <a href="login.php"
+            class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded">Login</a>
+          <a href="register.php"
+            class="px-4 py-2 border border-orange-500 text-orange-500 rounded hover:bg-orange-50">Daftar</a>
+      <?php endif; ?>
+
+    </nav>
     </div>
 </header>
 

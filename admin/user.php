@@ -49,7 +49,6 @@ $result = $conn->query($sql);
                         <td class="px-6 py-4 text-center"><?= $row['order_count'] ?></td>
                         <td class="px-6 py-4">Rp <?= number_format($row['total_spent']??0,0,',','.') ?></td>
                         <td class="px-6 py-4 space-x-2">
-                            <a href="user-form.php?id=<?= $row['user_id'] ?>" class="px-3 py-1 bg-blue-500 text-white rounded">Edit</a>
                             <a href="user-delete.php?id=<?= $row['user_id'] ?>" class="px-3 py-1 bg-red-500 text-white rounded" onclick="return confirm('Hapus pengguna ini?')">Hapus</a>
                         </td>
                     </tr>

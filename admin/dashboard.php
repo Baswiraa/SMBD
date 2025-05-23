@@ -105,7 +105,7 @@ $result = $conn->query($sql);
             </div>
             <div class="flex justify-end space-x-2">
                 <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-300 rounded">Batal</button>
-                <button type="submit" name="tambah_stok" class="px-4 py-2 bg-green-450 text-white rounded">Tambah</button>
+                <button type="submit" name="tambah_stok" class="px-4 py-2 bg-green-500 text-white rounded">Tambah</button>
             </div>
         </form>
     </div>
